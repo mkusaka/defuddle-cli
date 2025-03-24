@@ -14,11 +14,7 @@
   },
   "keywords": [
     "defuddle",
-    "cli",
-    "readability",
-    "content-extraction",
-    "article-extraction",
-    "web-scraping"
+    "cli"
   ],
   "author": "kepano",
   "license": "MIT",
