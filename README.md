@@ -1,6 +1,6 @@
 # Defuddle CLI
 
-Command line interface for [Defuddle](https://github.com/kepano/defuddle) - extract article content from web pages.
+Command line interface for [Defuddle](https://github.com/kepano/defuddle). Extract clean HTML or Markdown from pages.
 
 ## Installation
 
