@@ -69,7 +69,3 @@ npm run build
 # Run in development mode
 npm run dev
 ```
-
-## License
-
-MIT 
