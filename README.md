@@ -35,26 +35,17 @@ defuddle parse article.html
 
 Parse a URL and convert to markdown:
 ```bash
-defuddle parse https://example.com/article --markdown
-# or using the short alias
 defuddle parse https://example.com/article --md
 ```
 
-Parse and get both HTML and markdown in JSON:
+Parse and get the full JSON response from Defuddle:
 ```bash
-defuddle parse article.html -j
-# or using the long form
 defuddle parse article.html --json
 ```
 
 Save markdown output to a file:
 ```bash
-defuddle parse article.html --markdown -o output.md
-```
-
-Parse with debug mode:
-```bash
-defuddle parse article.html --debug
+defuddle parse article.html --md -o output.md
 ```
 
 ## Development
