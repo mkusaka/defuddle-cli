@@ -29,6 +29,7 @@ interface ParseOptions {
 	md?: boolean;
 	json?: boolean;
 	debug?: boolean;
+	property?: string;
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -982,8 +983,10 @@ program
 	.description('Parse HTML content from a file or URL')
 	.argument('<source>', 'HTML file path or URL to parse')
 	.option('-o, --output <file>', 'Output file path (default: stdout)')
-	.option('-m, --markdown, --md', 'Convert content to markdown format')
+	.option('-m, --markdown', 'Convert content to markdown format')
+	.option('--md', 'Alias for --markdown')
 	.option('-j, --json', 'Output as JSON with metadata and content')
+	.option('-p, --property <name>', 'Extract a specific property (e.g., title, description, domain)')
 	.option('--debug', 'Enable debug mode')
 	.action(async (source: string, options: ParseOptions) => {
 		try {
@@ -1095,7 +1098,16 @@ program
 					}
 
 					// Format the response based on options
-					if (options.json) {
+					if (options.property) {
+						// Extract specific property
+						const property = options.property.toLowerCase();
+						if (property in result) {
+							output = result[property as keyof typeof result]?.toString() || '';
+						} else {
+							console.error(chalk.red(`Error: Property "${property}" not found in response`));
+							process.exit(1);
+						}
+					} else if (options.json) {
 						const jsonObj: any = { 
 							content: result.content,
 							title: result.title,
