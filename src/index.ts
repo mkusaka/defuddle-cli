@@ -9,10 +9,26 @@ import ora from 'ora';
 import { readFile, writeFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
+import { createMarkdownContent } from './markdown.js';
+
+interface DOMSettableTokenList {
+	length: number;
+	value: string;
+	add(token: string): void;
+	contains(token: string): boolean;
+	item(index: number): string | null;
+	remove(token: string): void;
+	replace(oldToken: string, newToken: string): boolean;
+	supports(token: string): boolean;
+	toggle(token: string, force?: boolean): boolean;
+	[Symbol.iterator](): Iterator<string>;
+}
 
 interface ParseOptions {
 	output?: string;
-	format?: 'html' | 'json';
+	markdown?: boolean;
+	md?: boolean;
+	json?: boolean;
 	debug?: boolean;
 }
 
@@ -209,8 +225,6 @@ Object.defineProperties((globalThis as any).CSSRule, {
 	setAttribute(name: string, value: string): void {}
 
 	setAttributeNS(namespaceURI: string | null, qualifiedName: string, value: string): void {}
-
-	removeAttribute(name: string): void {}
 
 	removeAttributeNS(namespaceURI: string | null, localName: string): void {}
 
@@ -755,6 +769,207 @@ const window = dom.window;
 (globalThis as any).DOMParser = window.DOMParser;
 (globalThis as any).XMLSerializer = window.XMLSerializer;
 (globalThis as any).navigator = window.navigator;
+(globalThis as any).HTMLElement = window.HTMLElement;
+
+// Define DOMSettableTokenList
+(globalThis as any).DOMSettableTokenList = class {
+	length: number = 0;
+	value: string = '';
+	add(token: string): void {}
+	contains(token: string): boolean { return false; }
+	item(index: number): string | null { return null; }
+	remove(token: string): void {}
+	replace(oldToken: string, newToken: string): boolean { return false; }
+	supports(token: string): boolean { return false; }
+	toggle(token: string, force?: boolean): boolean { return false; }
+	[Symbol.iterator](): Iterator<string> {
+		return function*() { yield ''; return undefined; }();
+	}
+};
+
+// Define HTML element types
+(globalThis as any).HTMLIFrameElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+	align: string = '';
+	allow: string = '';
+	allowFullscreen: boolean = false;
+	contentDocument: Document | null = null;
+	contentWindow: Window | null = null;
+	frameBorder: string = '';
+	height: string = '';
+	longDesc: string = '';
+	marginHeight: string = '';
+	marginWidth: string = '';
+	name: string = '';
+	referrerPolicy: string = '';
+	sandbox: DOMSettableTokenList = {
+		length: 0,
+		value: '',
+		add: () => {},
+		contains: () => false,
+		item: () => null,
+		remove: () => {},
+		replace: () => false,
+		supports: () => false,
+		toggle: () => false,
+		[Symbol.iterator]: function*() { yield ''; return undefined; }
+	} as unknown as DOMSettableTokenList;
+	scrolling: string = '';
+	src: string = '';
+	srcdoc: string = '';
+	width: string = '';
+};
+
+(globalThis as any).HTMLOListElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+	type: string = '';
+	compact: boolean = false;
+	reversed: boolean = false;
+	start: number = 0;
+};
+
+(globalThis as any).HTMLUListElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+	type: string = '';
+	compact: boolean = false;
+};
+
+(globalThis as any).HTMLTableElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+	caption: HTMLTableCaptionElement | null = null;
+	tHead: HTMLTableSectionElement | null = null;
+	tFoot: HTMLTableSectionElement | null = null;
+	tBodies: HTMLCollectionOf<HTMLTableSectionElement> = {
+		length: 0,
+		item: () => null,
+		namedItem: () => null,
+		[Symbol.iterator]: function*() { yield null; return undefined; }
+	} as HTMLCollectionOf<HTMLTableSectionElement>;
+	rows: HTMLCollectionOf<HTMLTableRowElement> = {
+		length: 0,
+		item: () => null,
+		namedItem: () => null,
+		[Symbol.iterator]: function*() { yield null; return undefined; }
+	} as HTMLCollectionOf<HTMLTableRowElement>;
+	align: string = '';
+	bgColor: string = '';
+	border: string = '';
+	cellPadding: string = '';
+	cellSpacing: string = '';
+	frame: string = '';
+	rules: string = '';
+	summary: string = '';
+	width: string = '';
+	createCaption(): HTMLTableCaptionElement {
+		return new (globalThis as any).HTMLTableCaptionElement();
+	}
+	deleteCaption(): void {}
+	createTHead(): HTMLTableSectionElement {
+		return new (globalThis as any).HTMLTableSectionElement();
+	}
+	deleteTHead(): void {}
+	createTFoot(): HTMLTableSectionElement {
+		return new (globalThis as any).HTMLTableSectionElement();
+	}
+	deleteTFoot(): void {}
+	createTBody(): HTMLTableSectionElement {
+		return new (globalThis as any).HTMLTableSectionElement();
+	}
+	insertRow(index?: number): HTMLTableRowElement {
+		return new (globalThis as any).HTMLTableRowElement();
+	}
+	deleteRow(index: number): void {}
+};
+
+(globalThis as any).HTMLTableRowElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+	rowIndex: number = 0;
+	sectionRowIndex: number = 0;
+	cells: HTMLCollectionOf<HTMLTableCellElement> = {
+		length: 0,
+		item: () => null,
+		namedItem: () => null,
+		[Symbol.iterator]: function*() { yield null; return undefined; }
+	} as HTMLCollectionOf<HTMLTableCellElement>;
+	align: string = '';
+	bgColor: string = '';
+	ch: string = '';
+	chOff: string = '';
+	vAlign: string = '';
+	insertCell(index?: number): HTMLTableCellElement {
+		return new (globalThis as any).HTMLTableCellElement();
+	}
+	deleteCell(index: number): void {}
+};
+
+(globalThis as any).HTMLTableCellElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+	colSpan: number = 1;
+	rowSpan: number = 1;
+	headers: DOMSettableTokenList = {
+		length: 0,
+		value: '',
+		add: () => {},
+		contains: () => false,
+		item: () => null,
+		remove: () => {},
+		replace: () => false,
+		supports: () => false,
+		toggle: () => false,
+		[Symbol.iterator]: function*() { yield ''; return undefined; }
+	} as unknown as DOMSettableTokenList;
+	cellIndex: number = 0;
+	scope: string = '';
+	abbr: string = '';
+	align: string = '';
+	axis: string = '';
+	bgColor: string = '';
+	ch: string = '';
+	chOff: string = '';
+	height: string = '';
+	noWrap: boolean = false;
+	vAlign: string = '';
+	width: string = '';
+};
+
+(globalThis as any).HTMLTableSectionElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+	rows: HTMLCollectionOf<HTMLTableRowElement> = {
+		length: 0,
+		item: () => null,
+		namedItem: () => null,
+		[Symbol.iterator]: function*() { yield null; return undefined; }
+	} as HTMLCollectionOf<HTMLTableRowElement>;
+	align: string = '';
+	ch: string = '';
+	chOff: string = '';
+	vAlign: string = '';
+	insertRow(index?: number): HTMLTableRowElement {
+		return new (globalThis as any).HTMLTableRowElement();
+	}
+	deleteRow(index: number): void {}
+};
+
+(globalThis as any).HTMLTableCaptionElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+	align: string = '';
+};
 
 const program = new Command();
 
@@ -768,10 +983,16 @@ program
 	.description('Parse HTML content from a file or URL')
 	.argument('<source>', 'HTML file path or URL to parse')
 	.option('-o, --output <file>', 'Output file path (default: stdout)')
-	.option('-f, --format <format>', 'Output format (html, json)', 'html')
+	.option('-m, --markdown', 'Convert content to markdown')
+	.option('--md', 'Alias for --markdown')
+	.option('-j, --json', 'Output as JSON with both HTML and markdown content')
 	.option('--debug', 'Enable debug mode')
 	.action(async (source: string, options: ParseOptions) => {
 		try {
+			// Handle --md alias
+			if (options.md) {
+				options.markdown = true;
+			}
 			const spinner = ora('Parsing content...').start();
 			let html: string;
 
@@ -873,10 +1094,43 @@ program
 
 				// Format output
 				let output: string;
-				if (options.format === 'json') {
-					output = JSON.stringify(result, null, 2);
+				let content: string;
+				let contentMarkdown: string | undefined;
+
+				// Convert content to markdown if requested
+				if (options.markdown || options.json) {
+					contentMarkdown = createMarkdownContent(result.content, source);
+				}
+
+				// Format the response based on options
+				if (options.json) {
+					const jsonObj: any = { 
+						content: result.content,
+						title: result.title,
+						description: result.description,
+						domain: result.domain,
+						favicon: result.favicon,
+						image: result.image,
+						parseTime: result.parseTime,
+						published: result.published,
+						author: result.author,
+						site: result.site,
+						schemaOrgData: result.schemaOrgData,
+						wordCount: result.wordCount
+					};
+
+					// Only include markdown content if markdown flag is set
+					if (options.markdown) {
+						jsonObj.contentMarkdown = contentMarkdown;
+					}
+
+					output = JSON.stringify(jsonObj, null, 2)
+						.replace(/"([^"]+)":/g, chalk.cyan('"$1":'))
+						.replace(/: "([^"]+)"/g, chalk.yellow(': "$1"'))
+						.replace(/: (\d+)/g, chalk.yellow(': $1'))
+						.replace(/: (true|false|null)/g, chalk.magenta(': $1'));
 				} else {
-					output = result.content;
+					output = options.markdown ? contentMarkdown! : result.content;
 				}
 
 				// Handle output
