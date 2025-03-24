@@ -1,10 +1,10 @@
 {
-  "name": "@defuddle/cli",
+  "name": "defuddle-cli",
   "version": "0.1.0",
   "description": "Command line interface for Defuddle - extract article content from web pages",
   "main": "dist/index.js",
   "bin": {
-    "defuddle": "./dist/index.js"
+    "defuddle": "dist/index.js"
   },
   "type": "module",
   "scripts": {
