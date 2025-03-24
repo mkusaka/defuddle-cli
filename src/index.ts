@@ -861,7 +861,6 @@ program
 			}
 
 			// Parse content with debug mode if enabled
-			console.log('Creating Defuddle instance...');
 			try {
 				const defuddle = new Defuddle(doc, { 
 					debug: options.debug
@@ -869,7 +868,6 @@ program
 				
 				console.log('Starting parse...');
 				const result = await defuddle.parse();
-				console.log('Parse completed. Result:', result);
 
 				spinner.succeed('Content parsed successfully');
 
