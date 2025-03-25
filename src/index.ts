@@ -52,7 +52,7 @@ const __dirname = dirname(__filename);
 	}
 };
 
-// Add static properties
+// Static properties
 Object.defineProperties((globalThis as any).CSSRule, {
 	STYLE_RULE: { value: 1, writable: false },
 	CHARSET_RULE: { value: 2, writable: false },
@@ -980,6 +980,38 @@ const window = dom.window;
 	align: string = '';
 };
 
+(globalThis as any).HTMLButtonElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+	disabled: boolean = false;
+	form: HTMLFormElement | null = null;
+	formAction: string = '';
+	formEnctype: string = '';
+	formMethod: string = '';
+	formNoValidate: boolean = false;
+	formTarget: string = '';
+	name: string = '';
+	type: string = 'submit';
+	value: string = '';
+	menu: HTMLMenuElement | null = null;
+};
+
+// Add HTMLSpanElement interface
+(globalThis as any).HTMLSpanElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+};
+
+// Add HTMLDivElement interface
+(globalThis as any).HTMLDivElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+	align: string = '';
+};
+
 (globalThis as any).HTMLAnchorElement = class extends (globalThis as any).HTMLElement {
 	constructor() {
 		super();
@@ -1132,6 +1164,11 @@ program
 					});
 					
 					const result = await defuddle.parse();
+
+					// If in debug mode, don't show content output
+					if (options.debug) {
+						process.exit(0);
+					}
 
 					// Format output
 					let output: string;
