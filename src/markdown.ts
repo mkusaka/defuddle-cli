@@ -283,17 +283,6 @@ export function createMarkdownContent(content: string, url: string) {
 		}
 	});
 
-	turndownService.addRule('removeHiddenElements', {
-		filter: function (node) {
-			return (
-				node.style.display === 'none'
-			);
-		},
-		replacement: function () {
-			return '';
-		}
-	});
-
 	turndownService.addRule('citations', {
 		filter: (node: Node): boolean => {
 			if (node instanceof Element) {
