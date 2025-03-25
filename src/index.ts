@@ -735,6 +735,15 @@ function setupDOMInterfaces(window: DOMWindow) {
 			console.warn('Warning: Could not set Range constructor:', error);
 		}
 
+		// Add HTMLAnchorElement to global scope
+		try {
+			if (!window.HTMLAnchorElement) {
+				window.HTMLAnchorElement = (globalThis as any).HTMLAnchorElement as any;
+			}
+		} catch (error) {
+			console.warn('Warning: Could not set HTMLAnchorElement:', error);
+		}
+
 	} catch (error) {
 		console.error('Error in setupDOMInterfaces:', error);
 		// Don't throw the error, just log it
@@ -969,6 +978,43 @@ const window = dom.window;
 		super();
 	}
 	align: string = '';
+};
+
+(globalThis as any).HTMLAnchorElement = class extends (globalThis as any).HTMLElement {
+	constructor() {
+		super();
+	}
+	href: string = '';
+	target: string = '';
+	download: string = '';
+	ping: string = '';
+	rel: string = '';
+	relList: DOMSettableTokenList = {
+		length: 0,
+		value: '',
+		add: () => {},
+		contains: () => false,
+		item: () => null,
+		remove: () => {},
+		replace: () => false,
+		supports: () => false,
+		toggle: () => false,
+		[Symbol.iterator]: function*() { yield ''; return undefined; }
+	} as unknown as DOMSettableTokenList;
+	hreflang: string = '';
+	type: string = '';
+	text: string = '';
+	referrerPolicy: string = '';
+	origin: string = '';
+	protocol: string = '';
+	username: string = '';
+	password: string = '';
+	host: string = '';
+	hostname: string = '';
+	port: string = '';
+	pathname: string = '';
+	search: string = '';
+	hash: string = '';
 };
 
 const program = new Command();
