@@ -777,7 +777,16 @@ const window = dom.window;
 (globalThis as any).Range = window.Range;
 (globalThis as any).DOMParser = window.DOMParser;
 (globalThis as any).XMLSerializer = window.XMLSerializer;
-(globalThis as any).navigator = window.navigator;
+
+// Handle navigator property
+if (!globalThis.navigator || Object.getOwnPropertyDescriptor(globalThis, 'navigator')?.configurable) {
+	Object.defineProperty(globalThis, 'navigator', {
+		value: window.navigator,
+		writable: false,
+		configurable: true
+	});
+}
+
 (globalThis as any).HTMLElement = window.HTMLElement;
 
 // Define DOMSettableTokenList

@@ -5,7 +5,7 @@ Command line interface for [Defuddle](https://github.com/kepano/defuddle). Extra
 ## Installation
 
 ```bash
-npm install -g @defuddle/cli
+npm install -g defuddle/cli
 ```
 
 ## Usage
