@@ -870,6 +870,12 @@ program
 					} else {
 						console.log(output);
 					}
+
+					// Clean up JSDOM resources
+					contentDom.window.close();
+					dom.window.close();
+					
+					process.exit(0);
 				} catch (error) {
 					console.error(chalk.red('Error during parsing:'), error);
 					process.exit(1);
