@@ -2,8 +2,7 @@
 
 import { Command } from 'commander';
 import { JSDOM, VirtualConsole, DOMWindow } from 'jsdom';
-import pkg from 'defuddle';
-const { Defuddle } = pkg;
+import Defuddle from 'defuddle';
 import chalk from 'chalk';
 import { readFile, writeFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
@@ -801,6 +800,7 @@ program
 
 				// Parse content with debug mode if enabled
 				try {
+					// @ts-ignore - Module interop issue between ES modules and CommonJS
 					const defuddle = new Defuddle(doc, { 
 						debug: options.debug
 					});
