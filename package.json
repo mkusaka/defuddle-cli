@@ -1,6 +1,6 @@
 {
   "name": "defuddle-cli",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Command line interface for Defuddle - extract article content from web pages",
   "main": "dist/index.js",
   "bin": {
