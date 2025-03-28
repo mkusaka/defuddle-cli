@@ -802,7 +802,8 @@ program
 				try {
 					// @ts-ignore - Module interop issue between ES modules and CommonJS
 					const defuddle = new Defuddle(doc, { 
-						debug: options.debug
+						debug: options.debug,
+						...(source.startsWith('http') ? { url: source } : {})
 					});
 					
 					const result = await defuddle.parse();
