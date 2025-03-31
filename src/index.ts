@@ -8,7 +8,6 @@ import chalk from 'chalk';
 import { writeFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
-import { createMarkdownContent } from './markdown.js';
 
 interface ParseOptions {
 	output?: string;
@@ -59,7 +58,8 @@ program
 				// Parse content with debug mode if enabled
 				try {
 					const result = await parseHTML(dom, source.startsWith('http') ? source : undefined, {
-						debug: options.debug
+						debug: options.debug,
+						markdown: options.markdown
 					});
 
 					// If in debug mode, don't show content output
@@ -69,13 +69,6 @@ program
 
 					// Format output
 					let output: string;
-					let content: string;
-					let contentMarkdown: string | undefined;
-
-					// Convert content to markdown if requested
-					if (options.markdown || options.json) {
-						contentMarkdown = createMarkdownContent(result.content, source);
-					}
 
 					// Format the response based on options
 					if (options.property) {
@@ -103,18 +96,13 @@ program
 							wordCount: result.wordCount
 						};
 
-						// Only include markdown content if markdown flag is set
-						if (options.markdown) {
-							jsonObj.contentMarkdown = contentMarkdown;
-						}
-
 						output = JSON.stringify(jsonObj, null, 2)
 							.replace(/"([^"]+)":/g, chalk.cyan('"$1":'))
 							.replace(/: "([^"]+)"/g, chalk.yellow(': "$1"'))
 							.replace(/: (\d+)/g, chalk.yellow(': $1'))
 							.replace(/: (true|false|null)/g, chalk.magenta(': $1'));
 					} else {
-						output = options.markdown ? contentMarkdown! : result.content;
+						output = result.content;
 					}
 
 					// Handle output
