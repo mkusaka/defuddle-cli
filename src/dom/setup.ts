@@ -30,6 +30,116 @@ export const setupCSSInterfaces: SetupFunction = (window) => {
 	}
 };
 
+// Define CSS interfaces globally first
+(globalThis as any).CSSRule = class {
+	readonly type: number = 1;
+	cssText: string;
+	parentRule: any;
+	parentStyleSheet: any;
+
+	constructor(type?: number) {
+		if (type !== undefined) {
+			Object.defineProperty(this, 'type', { value: type });
+		}
+		this.cssText = '';
+		this.parentRule = null;
+		this.parentStyleSheet = null;
+	}
+};
+
+// Static properties
+Object.defineProperties((globalThis as any).CSSRule, {
+	STYLE_RULE: { value: 1, writable: false },
+	CHARSET_RULE: { value: 2, writable: false },
+	IMPORT_RULE: { value: 3, writable: false },
+	MEDIA_RULE: { value: 4, writable: false },
+	FONT_FACE_RULE: { value: 5, writable: false },
+	PAGE_RULE: { value: 6, writable: false },
+	KEYFRAMES_RULE: { value: 7, writable: false },
+	KEYFRAME_RULE: { value: 8, writable: false },
+	NAMESPACE_RULE: { value: 10, writable: false },
+	COUNTER_STYLE_RULE: { value: 11, writable: false },
+	SUPPORTS_RULE: { value: 12, writable: false },
+	DOCUMENT_RULE: { value: 13, writable: false },
+	FONT_FEATURE_VALUES_RULE: { value: 14, writable: false },
+	VIEWPORT_RULE: { value: 15, writable: false },
+	REGION_STYLE_RULE: { value: 16, writable: false }
+});
+
+(globalThis as any).CSSMediaRule = class extends (globalThis as any).CSSRule {
+	media: MediaList;
+	cssRules: CSSRuleList;
+	conditionText: string = '';
+	deleteRule: (index: number) => void = () => {};
+	insertRule: (rule: string, index?: number) => number = () => 0;
+
+	constructor() {
+		super();
+		Object.defineProperty(this, 'type', { value: 4 }); // CSSRule.MEDIA_RULE
+		this.media = {
+			length: 0,
+			mediaText: '',
+			item: () => null,
+			appendMedium: () => {},
+			deleteMedium: () => {},
+			toString: () => '',
+			[Symbol.iterator]: function*() { yield ''; return undefined; }
+		};
+		this.cssRules = {
+			length: 0,
+			item: () => null,
+			[Symbol.iterator]: function*() {
+				yield new (globalThis as any).CSSRule();
+				return undefined;
+			}
+		};
+	}
+};
+
+(globalThis as any).CSSStyleSheet = class {
+	type: string = 'text/css';
+	href: string | null = null;
+	ownerNode: Element | ProcessingInstruction | null = null;
+	parentStyleSheet: CSSStyleSheet | null = null;
+	title: string | null = null;
+	media: MediaList;
+	disabled: boolean = false;
+	cssRules: CSSRuleList;
+	ownerRule: CSSRule | null = null;
+	rules: CSSRuleList;
+	addRule: (selector: string, style: string, index?: number) => number = () => 0;
+	removeRule: (index?: number) => void = () => {};
+	replace: (text: string) => Promise<CSSStyleSheet> = async () => this as unknown as CSSStyleSheet;
+	replaceSync: (text: string) => void = () => {};
+
+	constructor() {
+		this.media = {
+			length: 0,
+			mediaText: '',
+			item: () => null,
+			appendMedium: () => {},
+			deleteMedium: () => {},
+			toString: () => '',
+			[Symbol.iterator]: function*() { yield ''; return undefined; }
+		};
+		this.cssRules = {
+			length: 0,
+			item: () => null,
+			[Symbol.iterator]: function*() {
+				yield new (globalThis as any).CSSRule();
+				return undefined;
+			}
+		};
+		this.rules = this.cssRules;
+	}
+
+	insertRule(rule: string, index?: number): number {
+		return 0;
+	}
+
+	deleteRule(index: number): void {}
+};
+
 // Setup HTML and SVG interfaces
 export const setupHTMLAndSVG: SetupFunction = (window) => {
 	if (!window.HTMLImageElement) {
