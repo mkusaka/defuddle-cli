@@ -1,17 +1,14 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { JSDOM, VirtualConsole, DOMWindow } from 'jsdom';
-import Defuddle from 'defuddle';
+import { JSDOM } from 'jsdom';
+import pkg from 'defuddle/node';
+const { parseHTML } = pkg;
 import chalk from 'chalk';
-import { readFile, writeFile } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { createMarkdownContent } from './markdown.js';
-import { setupDOMInterfaces } from './dom/setup.js';
-import { setupRange } from './dom/range.js';
-import { setupDocumentMethods, setupWindowMethods } from './dom/document.js';
-import { setupElements } from './dom/elements.js';
 
 interface ParseOptions {
 	output?: string;
@@ -24,27 +21,6 @@ interface ParseOptions {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Create a virtual console
-const virtualConsole = new VirtualConsole();
-
-// Create a virtual DOM
-const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
-	virtualConsole,
-	runScripts: 'dangerously',
-	resources: 'usable',
-	pretendToBeVisual: true,
-	beforeParse(window: DOMWindow) {
-		setupDOMInterfaces(window);
-		setupRange(window);
-		setupDocumentMethods(window);
-		setupWindowMethods(window);
-		setupElements(window);
-	}
-});
-
-// Get the window object
-const window = dom.window;
 
 const program = new Command();
 
@@ -69,104 +45,22 @@ program
 			if (options.md) {
 				options.markdown = true;
 			}
-			let html: string;
+			let dom: JSDOM;
 
 			try {
 				// Determine if source is a URL or file path
 				if (source.startsWith('http://') || source.startsWith('https://')) {
-					const response = await fetch(source);
-					html = await response.text();
+					dom = await JSDOM.fromURL(source);
 				} else {
 					const filePath = resolve(process.cwd(), source);
-					html = await readFile(filePath, 'utf-8');
-				}
-
-				// Create a new JSDOM instance with the HTML content
-				const contentDom = new JSDOM(html, {
-					virtualConsole,
-					runScripts: 'dangerously',
-					resources: 'usable',
-					pretendToBeVisual: true,
-					url: source.startsWith('http') ? source : undefined,
-					beforeParse(window: DOMWindow) {
-						try {
-							setupDOMInterfaces(window);
-							setupRange(window);
-							setupDocumentMethods(window);
-							setupWindowMethods(window);
-							setupElements(window);
-						} catch (error) {
-							console.error('Error setting up DOM interfaces:', error);
-						}
-					}
-				});
-
-				// Initialize document properties
-				const doc = contentDom.window.document;
-				
-				// Ensure document has required properties
-				if (!doc.documentElement) {
-					throw new Error('Document has no root element');
-				}
-
-				// Set up document properties
-				try {
-					doc.documentElement.style.cssText = '';
-					doc.documentElement.className = '';
-				} catch (error) {
-					console.warn('Warning: Could not set document element properties:', error);
-				}
-				
-				// Ensure body exists and is properly set up
-				if (!doc.body) {
-					const body = doc.createElement('body');
-					doc.documentElement.appendChild(body);
-				}
-				try {
-					doc.body.style.cssText = '';
-					doc.body.className = '';
-				} catch (error) {
-					console.warn('Warning: Could not set body properties:', error);
-				}
-
-				// Set up viewport and ensure head exists
-				if (!doc.head) {
-					const head = doc.createElement('head');
-					doc.documentElement.insertBefore(head, doc.body);
-				}
-
-				// Add viewport meta tag
-				try {
-					const viewport = doc.createElement('meta');
-					viewport.setAttribute('name', 'viewport');
-					viewport.setAttribute('content', 'width=device-width, initial-scale=1');
-					doc.head.appendChild(viewport);
-				} catch (error) {
-					console.warn('Warning: Could not add viewport meta tag:', error);
-				}
-
-				// Add a base style element for mobile styles
-				try {
-					const style = doc.createElement('style');
-					style.textContent = `
-						@media (max-width: 768px) {
-							body { width: 100%; }
-						}
-					`;
-					doc.head.appendChild(style);
-				} catch (error) {
-					console.warn('Warning: Could not add style element:', error);
+					dom = await JSDOM.fromFile(filePath);
 				}
 
 				// Parse content with debug mode if enabled
 				try {
-					// @ts-ignore - Module interop issue between ES modules and CommonJS
-					const defuddle = new Defuddle(doc, { 
-						debug: options.debug,
-						...(source.startsWith('http') ? { url: source } : {})
+					const result = await parseHTML(dom, source.startsWith('http') ? source : undefined, {
+						debug: options.debug
 					});
-					
-					const result = await defuddle.parse();
 
 					// If in debug mode, don't show content output
 					if (options.debug) {
@@ -231,10 +125,6 @@ program
 					} else {
 						console.log(output);
 					}
-
-					// Clean up JSDOM resources
-					contentDom.window.close();
-					dom.window.close();
 					
 					process.exit(0);
 				} catch (error) {
