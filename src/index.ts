@@ -2,8 +2,7 @@
 
 import { Command } from 'commander';
 import { JSDOM } from 'jsdom';
-import pkg from 'defuddle/node';
-const { parseHTML } = pkg;
+import { Defuddle } from 'defuddle/node';
 import chalk from 'chalk';
 import { writeFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
@@ -57,7 +56,7 @@ program
 
 				// Parse content with debug mode if enabled
 				try {
-					const result = await parseHTML(dom, source.startsWith('http') ? source : undefined, {
+					const result = await Defuddle(dom, source.startsWith('http') ? source : undefined, {
 						debug: options.debug,
 						markdown: options.markdown
 					});
