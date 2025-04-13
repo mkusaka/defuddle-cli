@@ -7,6 +7,7 @@ import chalk from 'chalk';
 import { writeFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
+import Sitemapper from 'sitemapper';
 
 interface ParseOptions {
 	output?: string;
@@ -15,6 +16,12 @@ interface ParseOptions {
 	json?: boolean;
 	debug?: boolean;
 	property?: string;
+}
+
+interface SitemapOptions {
+	output?: string;
+	json?: boolean;
+	debug?: boolean;
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -129,4 +136,62 @@ program
 		}
 	});
 
-program.parse(); 
+program
+	.command('sitemap')
+	.description('Extract URLs from a sitemap')
+	.argument('<url>', 'Sitemap URL to fetch URLs from')
+	.option('-o, --output <file>', 'Output file path (default: stdout)')
+	.option('-j, --json', 'Output as JSON with URLs')
+	.option('--debug', 'Enable debug mode')
+	.action(async (url: string, options: SitemapOptions) => {
+		try {
+			if (options.debug) {
+				console.log(chalk.blue('Debug mode enabled'));
+				console.log(chalk.blue(`Fetching sitemap from: ${url}`));
+			}
+
+			const sitemap = new Sitemapper({});
+			
+			try {
+				const { sites } = await sitemap.fetch(url);
+				
+				// Format output
+				let output: string;
+				
+				if (options.json) {
+					const jsonObj = { 
+						sitemapUrl: url,
+						urls: sites,
+						count: sites.length
+					};
+					
+					output = JSON.stringify(jsonObj, null, 2)
+						.replace(/"([^"]+)":/g, chalk.cyan('"$1":'))
+						.replace(/: "([^"]+)"/g, chalk.yellow(': "$1"'))
+						.replace(/: (\d+)/g, chalk.yellow(': $1'));
+				} else {
+					// Default text output - one URL per line
+					output = sites.join('\n');
+				}
+				
+				// Handle output
+				if (options.output) {
+					const outputPath = resolve(process.cwd(), options.output);
+					await writeFile(outputPath, output, 'utf-8');
+					console.log(chalk.green(`Output written to ${options.output}`));
+				} else {
+					console.log(output);
+				}
+				
+				process.exit(0);
+			} catch (error) {
+				console.error(chalk.red('Error fetching sitemap:'), error instanceof Error ? error.message : 'Unknown error occurred');
+				process.exit(1);
+			}
+		} catch (error) {
+			console.error(chalk.red('Error:'), error instanceof Error ? error.message : 'Unknown error occurred');
+			process.exit(1);
+		}
+	});
+
+program.parse();                        

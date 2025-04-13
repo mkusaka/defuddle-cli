@@ -14,6 +14,10 @@ npm install -g defuddle-cli
 defuddle parse <source> [options]
 ```
 
+```bash
+defuddle sitemap <url> [options]
+```
+
 ### Arguments
 
 - `source`: HTML file path or URL to parse
@@ -59,6 +63,31 @@ defuddle parse article.html -p description
 
 # Get the domain
 defuddle parse article.html --property domain
+```
+
+### Sitemap command
+
+Options:
+- `-o, --output <file>`: Output file path (default: stdout)
+- `-j, --json`: Output as JSON with URLs and count
+- `--debug`: Enable debug mode
+- `-h, --help`: Display help for command
+
+Examples:
+
+Extract URLs from a sitemap:
+```bash
+defuddle sitemap https://example.com/sitemap.xml
+```
+
+Save URLs to a file:
+```bash
+defuddle sitemap https://example.com/sitemap.xml -o urls.txt
+```
+
+Get URLs as JSON:
+```bash
+defuddle sitemap https://example.com/sitemap.xml --json
 ```
 
 ## Development
