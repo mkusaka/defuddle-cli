@@ -150,7 +150,7 @@ program
 				console.log(chalk.blue(`Fetching sitemap from: ${url}`));
 			}
 
-			const sitemap = new (Sitemapper as any)({});
+			const sitemap = new Sitemapper({});
 			
 			try {
 				const { sites } = await sitemap.fetch(url);
@@ -194,4 +194,4 @@ program
 		}
 	});
 
-program.parse();                      
+program.parse();                        
