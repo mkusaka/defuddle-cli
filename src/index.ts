@@ -7,7 +7,7 @@ import chalk from 'chalk';
 import { writeFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
-import { createRequire } from 'module';
+import Sitemapper from 'sitemapper';
 
 interface ParseOptions {
 	output?: string;
@@ -150,9 +150,7 @@ program
 				console.log(chalk.blue(`Fetching sitemap from: ${url}`));
 			}
 
-			const require = createRequire(import.meta.url);
-			const Sitemapper = require('sitemapper');
-			const sitemap = new Sitemapper({});
+			const sitemap = new (Sitemapper as any)({});
 			
 			try {
 				const { sites } = await sitemap.fetch(url);
@@ -196,4 +194,4 @@ program
 		}
 	});
 
-program.parse();                
+program.parse();                      
