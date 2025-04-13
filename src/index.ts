@@ -152,7 +152,7 @@ program
 
 			const require = createRequire(import.meta.url);
 			const Sitemapper = require('sitemapper');
-			const sitemap = new Sitemapper();
+			const sitemap = new Sitemapper({});
 			
 			try {
 				const { sites } = await sitemap.fetch(url);
@@ -196,4 +196,4 @@ program
 		}
 	});
 
-program.parse();      
+program.parse();                
