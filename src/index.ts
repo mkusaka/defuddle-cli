@@ -219,8 +219,8 @@ program
 	.argument('<output-dir>', 'Directory to save extracted markdown files')
 	.option('--debug', 'Enable debug mode')
 	.option('--continue', 'Continue processing even if an URL fails')
-	.option('-r, --retries <number>', 'Number of retry attempts for failed URLs', '3')
-	.option('-d, --retry-delay <number>', 'Delay between retries in milliseconds', '1000')
+	.option('-r, --retries <number>', 'Number of retry attempts for failed URLs', '10')
+	.option('-d, --retry-delay <number>', 'Initial delay between retries in milliseconds', '1000')
 	.action(async (url: string, outputDir: string, options: SitemapExtractOptions) => {
 		try {
 			if (options.debug) {
@@ -274,12 +274,19 @@ program
 							await writeFile(filePath, content, 'utf-8');
 							console.log(chalk.green(`Saved to ${filePath}`));
 						}, {
-							retries: parseInt(options.retries || '3'),
+							retries: parseInt(options.retries || '10'),
+							factor: 2, // Exponential factor (2 means delay doubles each time)
+							minTimeout: parseInt(options.retryDelay || '1000'), // Initial delay
+							maxTimeout: 60000, // Maximum delay of 60 seconds
 							onFailedAttempt: error => {
 								const retryCount = error.attemptNumber;
-								const maxRetries = parseInt(options.retries || '3');
+								const maxRetries = parseInt(options.retries || '10');
+								const nextRetryDelay = Math.min(
+									parseInt(options.retryDelay || '1000') * Math.pow(2, retryCount - 1),
+									60000
+								);
 								console.log(chalk.yellow(`Attempt ${retryCount}/${maxRetries} failed for ${siteUrl}: ${error.message}`));
-								return new Promise(resolve => setTimeout(resolve, parseInt(options.retryDelay || '1000')));
+								console.log(chalk.yellow(`Next retry in ${nextRetryDelay}ms with exponential backoff`));
 							}
 						});
 					} catch (error) {
@@ -304,4 +311,4 @@ program
 		}
 	});
 
-program.parse();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+program.parse();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
