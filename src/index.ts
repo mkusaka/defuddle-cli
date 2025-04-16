@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import Sitemapper from 'sitemapper';
 import { dump as yamlDump } from 'js-yaml';
+import pRetry from 'p-retry';
 
 interface ParseOptions {
 	output?: string;
@@ -29,6 +30,8 @@ interface SitemapExtractOptions {
 	output?: string;
 	debug?: boolean;
 	continue?: boolean;
+	retries?: string;
+	retryDelay?: string;
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -216,6 +219,8 @@ program
 	.argument('<output-dir>', 'Directory to save extracted markdown files')
 	.option('--debug', 'Enable debug mode')
 	.option('--continue', 'Continue processing even if an URL fails')
+	.option('-r, --retries <number>', 'Number of retry attempts for failed URLs', '3')
+	.option('-d, --retry-delay <number>', 'Delay between retries in milliseconds', '1000')
 	.action(async (url: string, outputDir: string, options: SitemapExtractOptions) => {
 		try {
 			if (options.debug) {
@@ -238,35 +243,48 @@ program
 					console.log(chalk.blue(`Processing ${i+1}/${sites.length}: ${siteUrl}`));
 					
 					try {
-						const dom = await JSDOM.fromURL(siteUrl);
-						const result = await Defuddle(dom, siteUrl, {
-							debug: options.debug,
-							markdown: true
+						await pRetry(async () => {
+							console.log(chalk.blue(`Processing URL: ${siteUrl}`));
+							
+							const dom = await JSDOM.fromURL(siteUrl);
+							const result = await Defuddle(dom, siteUrl, {
+								debug: options.debug,
+								markdown: true
+							});
+							
+							const metadata = {
+								title: result.title,
+								description: result.description,
+								domain: result.domain,
+								favicon: result.favicon,
+								image: result.image,
+								published: result.published,
+								author: result.author,
+								site: result.site,
+								url: siteUrl,
+								wordCount: result.wordCount
+							};
+							
+							const yamlFrontmatter = yamlDump(metadata);
+							const content = `---\n${yamlFrontmatter}---\n\n${result.content}`;
+							
+							const filename = urlToFilename(siteUrl);
+							const filePath = resolve(outputPath, filename);
+							
+							await writeFile(filePath, content, 'utf-8');
+							console.log(chalk.green(`Saved to ${filePath}`));
+						}, {
+							retries: parseInt(options.retries || '3'),
+							onFailedAttempt: error => {
+								const retryCount = error.attemptNumber;
+								const maxRetries = parseInt(options.retries || '3');
+								console.log(chalk.yellow(`Attempt ${retryCount}/${maxRetries} failed for ${siteUrl}: ${error.message}`));
+								return new Promise(resolve => setTimeout(resolve, parseInt(options.retryDelay || '1000')));
+							}
 						});
-						
-						const metadata = {
-							title: result.title,
-							description: result.description,
-							domain: result.domain,
-							favicon: result.favicon,
-							image: result.image,
-							published: result.published,
-							author: result.author,
-							site: result.site,
-							url: siteUrl,
-							wordCount: result.wordCount
-						};
-						
-						const yamlFrontmatter = yamlDump(metadata);
-						const content = `---\n${yamlFrontmatter}---\n\n${result.content}`;
-						
-						const filename = urlToFilename(siteUrl);
-						const filePath = resolve(outputPath, filename);
-						
-						await writeFile(filePath, content, 'utf-8');
-						console.log(chalk.green(`Saved to ${filePath}`));
 					} catch (error) {
-						console.error(chalk.red(`Error processing ${siteUrl}:`), error instanceof Error ? error.message : 'Unknown error occurred');
+						console.error(chalk.red(`Error processing ${siteUrl} after all retry attempts:`), 
+							error instanceof Error ? error.message : 'Unknown error occurred');
 						if (!options.continue) {
 							console.error(chalk.red('Stopping due to error. Use --continue to process despite errors.'));
 							process.exit(1);
@@ -286,4 +304,4 @@ program
 		}
 	});
 
-program.parse();                                                                                                                                                                                                                        
+program.parse();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
