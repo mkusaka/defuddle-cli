@@ -8,6 +8,7 @@ import { writeFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import Sitemapper from 'sitemapper';
+import { dump as yamlDump } from 'js-yaml';
 
 interface ParseOptions {
 	output?: string;
@@ -22,6 +23,12 @@ interface SitemapOptions {
 	output?: string;
 	json?: boolean;
 	debug?: boolean;
+}
+
+interface SitemapExtractOptions {
+	output?: string;
+	debug?: boolean;
+	continue?: boolean;
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -194,4 +201,89 @@ program
 		}
 	});
 
-program.parse();                        
+function urlToFilename(url: string): string {
+	const urlObj = new URL(url);
+	let filename = urlObj.pathname.replace(/^\//, '').replace(/\//g, '-');
+	if (!filename) filename = 'index';
+	if (!filename.endsWith('.md')) filename += '.md';
+	return filename;
+}
+
+program
+	.command('sitemap-extract')
+	.description('Extract content from URLs in a sitemap and save as markdown files with YAML frontmatter')
+	.argument('<url>', 'Sitemap URL to fetch URLs from')
+	.argument('<output-dir>', 'Directory to save extracted markdown files')
+	.option('--debug', 'Enable debug mode')
+	.option('--continue', 'Continue processing even if an URL fails')
+	.action(async (url: string, outputDir: string, options: SitemapExtractOptions) => {
+		try {
+			if (options.debug) {
+				console.log(chalk.blue('Debug mode enabled'));
+				console.log(chalk.blue(`Fetching sitemap from: ${url}`));
+			}
+
+			const sitemap = new Sitemapper({});
+			
+			try {
+				const { mkdir } = await import('fs/promises');
+				const outputPath = resolve(process.cwd(), outputDir);
+				await mkdir(outputPath, { recursive: true });
+				
+				const { sites } = await sitemap.fetch(url);
+				console.log(chalk.green(`Found ${sites.length} URLs in sitemap`));
+				
+				for (let i = 0; i < sites.length; i++) {
+					const siteUrl = sites[i];
+					console.log(chalk.blue(`Processing ${i+1}/${sites.length}: ${siteUrl}`));
+					
+					try {
+						const dom = await JSDOM.fromURL(siteUrl);
+						const result = await Defuddle(dom, siteUrl, {
+							debug: options.debug,
+							markdown: true
+						});
+						
+						const metadata = {
+							title: result.title,
+							description: result.description,
+							domain: result.domain,
+							favicon: result.favicon,
+							image: result.image,
+							published: result.published,
+							author: result.author,
+							site: result.site,
+							url: siteUrl,
+							wordCount: result.wordCount
+						};
+						
+						const yamlFrontmatter = yamlDump(metadata);
+						const content = `---\n${yamlFrontmatter}---\n\n${result.content}`;
+						
+						const filename = urlToFilename(siteUrl);
+						const filePath = resolve(outputPath, filename);
+						
+						await writeFile(filePath, content, 'utf-8');
+						console.log(chalk.green(`Saved to ${filePath}`));
+					} catch (error) {
+						console.error(chalk.red(`Error processing ${siteUrl}:`), error instanceof Error ? error.message : 'Unknown error occurred');
+						if (!options.continue) {
+							console.error(chalk.red('Stopping due to error. Use --continue to process despite errors.'));
+							process.exit(1);
+						}
+					}
+				}
+				
+				console.log(chalk.green(`Completed processing ${sites.length} URLs from sitemap`));
+				process.exit(0);
+			} catch (error) {
+				console.error(chalk.red('Error fetching sitemap:'), error instanceof Error ? error.message : 'Unknown error occurred');
+				process.exit(1);
+			}
+		} catch (error) {
+			console.error(chalk.red('Error:'), error instanceof Error ? error.message : 'Unknown error occurred');
+			process.exit(1);
+		}
+	});
+
+program.parse();                                                                                                                                                                                                                        
