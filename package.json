@@ -24,6 +24,7 @@
     "defuddle": "^0.6.1",
     "js-yaml": "^4.1.0",
     "jsdom": "^24.0.0",
+    "p-retry": "^6.2.1",
     "sitemapper": "^3.2.20"
   },
   "devDependencies": {
