@@ -90,6 +90,38 @@ Get URLs as JSON:
 defuddle sitemap https://example.com/sitemap.xml --json
 ```
 
+### Sitemap-extract command
+
+The sitemap-extract command extracts content from URLs in a sitemap and saves them as markdown files with YAML frontmatter.
+
+Arguments:
+- `url`: Sitemap URL to fetch URLs from
+- `output-dir`: Directory to save extracted markdown files
+
+Options:
+- `--debug`: Enable debug mode
+- `--continue`: Continue processing even if an URL fails
+- `-r, --retries <number>`: Number of retry attempts for failed URLs (default: 10)
+- `-d, --retry-delay <number>`: Initial delay between retries in milliseconds (default: 1000)
+- `-h, --help`: Display help for command
+
+Examples:
+
+Extract content from all URLs in a sitemap and save as markdown files:
+```bash
+defuddle sitemap-extract https://example.com/sitemap.xml ./output
+```
+
+Continue processing even if some URLs fail:
+```bash
+defuddle sitemap-extract https://example.com/sitemap.xml ./output --continue
+```
+
+Customize retry behavior for unreliable connections:
+```bash
+defuddle sitemap-extract https://example.com/sitemap.xml ./output --retries 5 --retry-delay 2000
+```
+
 ## Development
 
 ```bash
