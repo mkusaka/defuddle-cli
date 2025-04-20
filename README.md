@@ -72,6 +72,7 @@ Options:
 - `-j, --json`: Output as JSON with URLs and count
 - `--debug`: Enable debug mode
 - `-h, --help`: Display help for command
+- `-l, --rate-limit <number>`: Maximum number of requests per second (0 to disable, default: 1)
 
 Examples:
 
@@ -88,6 +89,20 @@ defuddle sitemap https://example.com/sitemap.xml -o urls.txt
 Get URLs as JSON:
 ```bash
 defuddle sitemap https://example.com/sitemap.xml --json
+```
+
+### Sitemap-extract command
+
+Options:
+- `--debug`: Enable debug mode
+- `--continue`: Continue processing even if an URL fails
+- `-r, --retries <number>`: Number of retry attempts for failed URLs (default: 10)
+- `-d, --retry-delay <number>`: Initial delay between retries in milliseconds (default: 1000)
+- `-l, --rate-limit <number>`: Maximum number of requests per second (0 to disable, default: 1)
+
+Example:
+```bash
+defuddle sitemap-extract https://example.com/sitemap.xml ./output-dir --rate-limit 2
 ```
 
 ## Development

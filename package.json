@@ -25,6 +25,7 @@
     "js-yaml": "^4.1.0",
     "jsdom": "^24.0.0",
     "p-retry": "^6.2.1",
+    "p-throttle": "^7.0.0",
     "sitemapper": "^3.2.20"
   },
   "devDependencies": {
