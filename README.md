@@ -18,6 +18,10 @@ defuddle parse <source> [options]
 defuddle sitemap <url> [options]
 ```
 
+```bash
+defuddle sitemap-extract <url> <output-dir> [options]
+```
+
 ### Arguments
 
 - `source`: HTML file path or URL to parse
@@ -72,6 +76,7 @@ Options:
 - `-j, --json`: Output as JSON with URLs and count
 - `--debug`: Enable debug mode
 - `-h, --help`: Display help for command
+- `-l, --rate-limit <number>`: Maximum number of requests per second (0 to disable, default: 1)
 
 Examples:
 
@@ -103,6 +108,7 @@ Options:
 - `--continue`: Continue processing even if an URL fails
 - `-r, --retries <number>`: Number of retry attempts for failed URLs (default: 10)
 - `-d, --retry-delay <number>`: Initial delay between retries in milliseconds (default: 1000)
+- `-l, --rate-limit <number>`: Maximum number of requests per second (0 to disable, default: 1)
 - `-h, --help`: Display help for command
 
 Examples:
@@ -122,6 +128,10 @@ Customize retry behavior for unreliable connections:
 defuddle sitemap-extract https://example.com/sitemap.xml ./output --retries 5 --retry-delay 2000
 ```
 
+Limit request rate to 2 requests per second:
+```bash
+defuddle sitemap-extract https://example.com/sitemap.xml ./output --rate-limit 2
+```
 ## Development
 
 ```bash
